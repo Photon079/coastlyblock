@@ -380,17 +380,17 @@ export default function App() {
                           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 border border-white/20">
                             <h3 className="text-xl text-white mb-4">Contact Information</h3>
                             <div className="space-y-3 text-white/80">
-                              <p>Email: contact@bitninjas.com</p>
-                              <p>Phone: +1 (555) 123-4567</p>
-                              <p>Address: 123 Coastal Tech Ave, Bay City</p>
+                              <p>Email: contact@bitninjasxyz.com</p>
+                              <p>Phone: +91 1234567899</p>
+                              <p>Address: #xyz Harohalli Bengaluru Karnataka India-562112</p>
                             </div>
                           </div>
                           <div className="backdrop-blur-md bg-white/10 rounded-xl p-6 border border-white/20">
                             <h3 className="text-xl text-white mb-4">Support</h3>
                             <div className="space-y-3 text-white/80">
-                              <p>Technical Support: support@bitninjas.com</p>
+                              <p>Technical Support: support@bitninjasxyz.com</p>
                               <p>Partnership Inquiries: partners@bitninjas.com</p>
-                              <p>Business Hours: Mon-Fri 9AM-6PM EST</p>
+                              <p>Business Hours: Mon-Fri 9AM-6PM IST</p>
                             </div>
                           </div>
                         </div>
@@ -483,7 +483,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1E40AF' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#013220' }}>
       <nav className="backdrop-blur-md bg-white/10 border-b border-white/20 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -526,7 +526,7 @@ export default function App() {
         </div>
       </nav>
       
-      <div className="p-6" style={{ backgroundColor: '#000080' }}>
+      <div className="p-6" style={{ backgroundColor: '#013220' }}>
         {selectedPortal === 'ngo' && <NGOPortal />}
         {selectedPortal === 'admin' && <AdminPortal />}
         {selectedPortal === 'investor' && <InvestorPortal />}
