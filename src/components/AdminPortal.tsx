@@ -385,10 +385,10 @@ export function AdminPortal() {
                       <p className="text-white">{submission.area}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3">
-                      <p className="text-white/70 text-xs">AI Score</p>
+                      <p className="text-white/70 text-xs">Tokens Issused</p>
                       <p className="text-white flex items-center">
-                        {submission.aiScore}%
-                        <Bot className="w-3 h-3 ml-1 text-blue-400" />
+                        {"2500"}
+                        {/* <Bot className="w-3 h-3 ml-1 text-blue-400" /> */}
                       </p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-3">
@@ -557,10 +557,10 @@ export function AdminPortal() {
                               <p className="text-emerald-400 text-xs">Target achieved</p>
                             </div>
                             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                              <p className="text-white/70 text-xs mb-1">AI Verification</p>
+                              <p className="text-white/70 text-xs mb-1">Tokens Issued</p>
                               <p className="text-white flex items-center text-xl">
-                                {submission.aiScore}%
-                                <Bot className="w-5 h-5 ml-2 text-blue-400" />
+                                {"2500"}
+                                {/* <Bot className="w-5 h-5 ml-2 text-blue-400" /> */}
                               </p>
                               <p className="text-blue-400 text-xs">High confidence</p>
                             </div>
