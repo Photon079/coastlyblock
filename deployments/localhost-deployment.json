@@ -1,0 +1,11 @@
+{
+  "network": "localhost",
+  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "deploymentTime": "2025-09-29T09:34:11.143Z",
+  "contractName": "ProjectToken",
+  "symbol": "PTK",
+  "decimals": "18",
+  "transactionHash": "0x225f16697c7b145c7fae99b494324a02b29dc05d0705eb0bb4dea70831beb786",
+  "blockNumber": 1
+}

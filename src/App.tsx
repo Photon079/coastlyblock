@@ -1,4 +1,9 @@
-import image_f47276e688678a84cdbc9054b14f1ee3c86ca640 from 'figma:asset/f47276e688678a84cdbc9054b14f1ee3c86ca640.png';
+// Preferred logo source (original figma asset used earlier). TS may not know this module; ignore its type.
+// @ts-ignore
+import COASTLY_LOGO_FIGMA from 'figma:asset/f47276e688678a84cdbc9054b14f1ee3c86ca640.png';
+
+// Local fallback logo served from /public (PNG you provide). Final fallback is /logo.svg.
+const COASTLY_LOGO_URL = COASTLY_LOGO_FIGMA || '/logo.png';
 
 import React, { useState, useEffect } from 'react';
 import { NGOPortal } from './components/NGOPortal';
@@ -8,6 +13,14 @@ import { LoginModal } from './components/LoginModal';
 import { RegistrationModal } from './components/RegistrationModal';
 import { Button } from './components/ui/button';
 import { Leaf } from 'lucide-react';
+import ethersService from './utils/ethersService';
+import { Toaster } from './components/ui/sonner';
+
+const shortAddr = (addr?: string) => {
+  if (!addr || addr === 'Connected') return addr || '';
+  if (addr.length < 10) return addr;
+  return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+};
 
 type PortalType = 'select' | 'ngo' | 'admin' | 'investor';
 type AuthState = {
@@ -54,14 +67,21 @@ export default function App() {
     }
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     if (pendingPortalType) {
+      let addr = ethersService?.userAddress;
+      if (!addr) {
+        try {
+          const { address } = await ethersService.connectWallet();
+          addr = address;
+        } catch {}
+      }
       setAuthState({
         isAuthenticated: true,
         userType: pendingPortalType,
         user: {
-          username: `${pendingPortalType}_user`, // Mock user
-          walletAddress: '0x742d...9C4A' // Mock wallet
+          username: `${pendingPortalType}_user`,
+          walletAddress: addr || undefined
         }
       });
       setSelectedPortal(pendingPortalType);
@@ -77,8 +97,8 @@ export default function App() {
         isAuthenticated: true,
         userType: pendingPortalType,
         user: {
-          username: `${pendingPortalType}_user`, // Mock user
-          walletAddress: '0x742d...9C4A' // Mock wallet
+          username: `${pendingPortalType}_user`,
+          walletAddress: ethersService?.userAddress
         }
       });
       setSelectedPortal(pendingPortalType);
@@ -130,9 +150,10 @@ export default function App() {
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center overflow-hidden">
                   <img 
-                    src={image_f47276e688678a84cdbc9054b14f1ee3c86ca640} 
+                    src={COASTLY_LOGO_URL} 
                     alt="Coastly Logo" 
                     className="w-20 h-20 object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.svg'; }}
                   />
                 </div>
               </div>
@@ -231,10 +252,11 @@ export default function App() {
                 onClick={() => handlePortalClick('ngo')}
               >
                 <img 
-                  src={image_f47276e688678a84cdbc9054b14f1ee3c86ca640} 
+                  src={COASTLY_LOGO_URL} 
                   alt="NGO Portal - Coastal Restoration" 
                   className="w-full h-full object-cover rounded-full"
                   onClick={(e) => e.stopPropagation()}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.svg'; }}
                 />
               </div>
 
@@ -478,20 +500,25 @@ export default function App() {
           onBackToLogin={handleBackToLogin}
           onRegistrationSuccess={handleRegistrationSuccess}
         />
+        {/* Global toast portal */}
+        <Toaster position="top-right" expand={false} richColors closeButton />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#013220' }}>
+      {/* Global toast portal */}
+      <Toaster position="top-right" expand={false} richColors closeButton />
       <nav className="backdrop-blur-md bg-white/10 border-b border-white/20 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-emerald-500/20 rounded-full flex items-center justify-center overflow-hidden">
               <img 
-                src={image_f47276e688678a84cdbc9054b14f1ee3c86ca640} 
+                src={COASTLY_LOGO_URL} 
                 alt="Coastly Logo" 
                 className="w-15 h-15 object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.svg'; }}
               />
             </div>
             <span className="text-white text-xl">Coastly</span>
@@ -501,7 +528,7 @@ export default function App() {
                 <span className="text-emerald-400 text-sm">{authState.user.username}</span>
                 {authState.user.walletAddress && (
                   <span className="text-white/60 text-xs font-mono">
-                    {authState.user.walletAddress}
+                    {shortAddr(authState.user.walletAddress)}
                   </span>
                 )}
               </div>

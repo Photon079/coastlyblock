@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import ethersService from '../utils/ethersService';
+
 import { 
   Wallet, 
   User, 
@@ -36,6 +38,7 @@ export function LoginModal({
   const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [credentials, setCredentials] = useState({
@@ -43,6 +46,41 @@ export function LoginModal({
     password: ''
   });
   const [errors, setErrors] = useState<{metamask?: string, credentials?: string}>({});
+
+  const shortAddr = (addr: string) => addr && addr.length > 10 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr;
+
+  // If wallet is already connected (e.g., from another page), skip the connect step
+  useEffect(() => {
+    if (ethersService && (ethersService as any).userAddress) {
+      setWalletConnected(true);
+      setWalletAddress((ethersService as any).userAddress);
+      setLoginStep('credentials');
+    }
+    // Listen for MetaMask events to auto-progress when user approves in extension
+    const eth = (window as any).ethereum;
+    if (eth && eth.on) {
+      const handleAccounts = (accs: string[]) => {
+        if (accs && accs.length > 0) {
+          setWalletConnected(true);
+          setWalletAddress(accs[0]);
+          setLoginStep('credentials');
+          setIsConnectingWallet(false);
+          setErrors({});
+        }
+      };
+      const handleChain = () => {
+        // no-op, but could be used to refresh state
+      };
+      eth.on('accountsChanged', handleAccounts);
+      eth.on('chainChanged', handleChain);
+      return () => {
+        try {
+          eth.removeListener('accountsChanged', handleAccounts);
+          eth.removeListener('chainChanged', handleChain);
+        } catch {}
+      };
+    }
+  }, []);
 
   const getPortalTitle = () => {
     switch (portalType) {
@@ -68,7 +106,8 @@ export function LoginModal({
 
     try {
       // Check if MetaMask is installed
-      if (typeof window.ethereum === 'undefined') {
+      if (typeof (window as any).ethereum === 'undefined') {
+
         // Demo mode - simulate MetaMask connection
         console.log('MetaMask not detected, using demo mode');
         
@@ -90,22 +129,31 @@ export function LoginModal({
         return;
       }
 
-      // Real MetaMask flow
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-      });
+      // Fast path: if already authorized, use the existing account to avoid spinner
+      const eth = (window as any).ethereum;
+      try {
+        const pre = await eth.request({ method: 'eth_accounts' });
+        if (pre && pre.length > 0) {
+          setWalletAddress(pre[0]);
+          setWalletConnected(true);
+          setLoginStep('credentials');
+          setErrors({});
+          return;
+        }
+      } catch {}
 
-      if (accounts.length === 0) {
-        throw new Error('No MetaMask accounts found. Please unlock MetaMask and try again.');
+      // Real MetaMask flow via ethersService (also initializes contract when appropriate)
+      // Only mark as connected when we actually receive an address
+      try {
+        const { address } = await ethersService.connectWallet();
+        setWalletAddress(address);
+        setWalletConnected(true);
+        setLoginStep('credentials');
+        setErrors({});
+      } catch (e: any) {
+        setErrors({ metamask: e?.message || 'Failed to connect to MetaMask' });
+        setWalletConnected(false);
       }
-
-      // Mock wallet verification
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const address = accounts[0];
-      setWalletAddress(address);
-      setWalletConnected(true);
-      setLoginStep('credentials');
 
     } catch (error: any) {
       console.error('MetaMask connection error:', error);
@@ -218,7 +266,7 @@ export function LoginModal({
                   <h3 className="text-white">Connect MetaMask Wallet</h3>
                 </div>
                 <p className="text-white/70 text-sm mb-4">
-                  {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' 
+                  {typeof window !== 'undefined' && typeof (window as any).ethereum === 'undefined' 
                     ? 'Connect your wallet for blockchain verification. Demo wallet will be used since MetaMask is not installed.'
                     : 'First, connect your MetaMask wallet for blockchain verification and security.'}
                 </p>
@@ -238,14 +286,14 @@ export function LoginModal({
                   {isConnectingWallet ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                      {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' 
+                      {typeof window !== 'undefined' && typeof (window as any).ethereum === 'undefined' 
                         ? 'Connecting Demo Wallet...' 
                         : 'Connecting to MetaMask...'}
                     </>
                   ) : (
                     <>
                       <Wallet className="w-5 h-5 mr-3" />
-                      {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' 
+                      {typeof window !== 'undefined' && typeof (window as any).ethereum === 'undefined' 
                         ? 'Connect Demo Wallet' 
                         : 'Connect MetaMask'}
                     </>
@@ -253,7 +301,7 @@ export function LoginModal({
                 </Button>
 
                 {/* Demo Mode Info */}
-                {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' && (
+                {typeof window !== 'undefined' && typeof (window as any).ethereum === 'undefined' && (
                   <div className="bg-blue-500/10 border border-blue-400/30 rounded-lg p-3 mt-3">
                     <p className="text-blue-300 text-xs text-center">
                       🔧 Demo Mode: MetaMask not detected. Using simulated wallet for demonstration.
@@ -276,23 +324,35 @@ export function LoginModal({
 
           {loginStep === 'credentials' && (
             <div className="space-y-6">
-              {/* Wallet Connected Status */}
-              <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-4 flex items-center">
-                <CheckCircle className="w-5 h-5 text-emerald-400 mr-3" />
-                <div className="flex-1">
-                  <p className="text-emerald-300 text-sm">
-                    {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' 
-                      ? 'Demo Wallet Connected' 
-                      : 'MetaMask Connected'}
-                  </p>
-                  <p className="text-emerald-200 text-xs font-mono">{walletAddress}</p>
-                </div>
-                {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' && (
-                  <div className="text-xs text-emerald-300 bg-emerald-500/10 px-2 py-1 rounded">
-                    DEMO
+              {/* Wallet Status */}
+              {walletConnected && walletAddress ? (
+                <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-4 flex items-center">
+                  <CheckCircle className="w-5 h-5 text-emerald-400 mr-3" />
+                  <div className="flex-1">
+                    <p className="text-emerald-300 text-sm">
+                      {typeof window !== 'undefined' && typeof (window as any).ethereum === 'undefined' 
+                        ? 'Demo Wallet Connected' 
+                        : `MetaMask Connected · ${shortAddr(walletAddress)}`}
+                    </p>
                   </div>
-                )}
-              </div>
+                  {typeof window !== 'undefined' && typeof (window as any).ethereum === 'undefined' && (
+                    <div className="text-xs text-emerald-300 bg-emerald-500/10 px-2 py-1 rounded">
+                      DEMO
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-4 flex items-center gap-3">
+                  <span className="text-yellow-300 text-sm">Wallet not connected</span>
+                  <Button 
+                    onClick={handleMetaMaskConnect}
+                    disabled={isConnectingWallet}
+                    className="ml-auto bg-orange-500 hover:bg-orange-600 text-white h-8 px-3"
+                  >
+                    {isConnectingWallet ? 'Connecting…' : 'Retry Connect'}
+                  </Button>
+                </div>
+              )}
 
               {/* Credentials Step */}
               <div className="bg-white/5 rounded-lg p-6 border border-white/10">

@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Avatar } from './ui/avatar';
+import ProfessionalTokenPanel from './ProfessionalTokenPanel';
 import { 
   Eye, 
   CheckCircle, 
@@ -173,7 +174,7 @@ export function AdminPortal() {
     <div className="max-w-7xl mx-auto">
       <Tabs defaultValue="dashboard" className="w-full">
         <div className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-6 mb-8">
-          <TabsList className="grid w-full grid-cols-4 bg-white/10 border border-white/20">
+          <TabsList className="grid w-full grid-cols-5 bg-white/10 border border-white/20">
             <TabsTrigger value="dashboard" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               Dashboard
             </TabsTrigger>
@@ -182,6 +183,9 @@ export function AdminPortal() {
             </TabsTrigger>
             <TabsTrigger value="verification" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               AI/Satellite
+            </TabsTrigger>
+            <TabsTrigger value="tokens" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              Token Management
             </TabsTrigger>
             <TabsTrigger value="certificates" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               Certificates
@@ -941,6 +945,10 @@ export function AdminPortal() {
               </div>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="tokens">
+          <ProfessionalTokenPanel />
         </TabsContent>
       </Tabs>
     </div>

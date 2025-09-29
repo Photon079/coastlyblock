@@ -1,0 +1,11 @@
+{
+  "network": "hardhat",
+  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "deploymentTime": "2025-09-29T07:26:20.932Z",
+  "contractName": "ProjectToken",
+  "symbol": "PTK",
+  "decimals": "18",
+  "transactionHash": "0xbf63d376b21757dfd721d93d25636fbfd027c2b14f6136bbb9d933eb2ea29af9",
+  "blockNumber": 1
+}
